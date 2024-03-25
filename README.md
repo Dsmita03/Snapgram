@@ -2,9 +2,9 @@ Explore social media with this user-friendly platform that has a nice look and l
 
 ⚙️ Tech Stack
 
-React.js
-Appwrite
-React Query
-TypeScript
-Shadcn
-Tailwind CSS
+React.js,
+Appwrite,
+React Query,
+TypeScript,
+Shadcn,
+Tailwind CSS,
