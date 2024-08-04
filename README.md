@@ -1,9 +1,6 @@
-# Snapgram: Your Social Media Companion
+# Snapgram
 
 Snapgram is a dynamic web application inspired by Instagram, designed to streamline development processes and deliver engaging user experiences. Leveraging the power of React and other innovative technologies, it aims to provide a robust solution for social networking and media sharing.
-
-## Overview
-
 Snapgram is your go-to social media companion, offering a familiar yet refreshing experience akin to Instagram. With its sleek interface and seamless functionalities, Snapgram enables users to connect, share moments, and engage with content effortlessly.
 
 ## Features
