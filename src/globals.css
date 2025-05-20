@@ -12,6 +12,12 @@
   body {
     @apply bg-dark-1 text-white min-h-screen font-inter;
   }
+
+  /* Disable white highlight on text selection inside .topbar */
+  .leftsidebar-link ::selection {
+    background-color: transparent;
+    color: inherit;
+  }
 }
 
 @layer utilities {

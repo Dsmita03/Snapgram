@@ -18,16 +18,17 @@ const LeftSidebar = () => {
 
   useEffect(() => {
     if (isSuccess) {
-      navigate(0);
+      navigate("/login");
     }
-  }, [isSuccess]);
+  }, [isSuccess, navigate]);
+
   return (
     <nav className="leftsidebar">
       <div className="flex flex-col gap-11">
         <Link to="/" className="flex gap-3 items-center">
           <img src="/assets/images/logo.svg" width={170} height={36} alt="logo" />
         </Link>
-        {isLoading || !user.email ? (
+        {isLoading || !user?.email ? (
           <div className="h-14">
             <Loader />
           </div>
@@ -37,6 +38,10 @@ const LeftSidebar = () => {
               className="h-14 w-14 rounded-full"
               src={user.imageUrl || "/assets/icons/profile-placeholder.svg"}
               alt="Profile image"
+              onError={(e) => {
+                e.currentTarget.onerror = null;
+                e.currentTarget.src = "/assets/icons/profile-placeholder.svg";
+              }}
             />
             <div className="flex flex-col">
               <p className="body-bold">{user.name}</p>
@@ -46,17 +51,17 @@ const LeftSidebar = () => {
         )}
         <ul className="flex flex-col gap-6">
           {sideBarLinks.map((link: INavLink) => (
-            <li
-              className={`leftsidebar-link group ${
-                pathname === link.route ? "bg-primary-500" : ""
-              }`}
-              key={link.label}
-            >
-              <NavLink className="flex gap-4 items-center p-4" to={link.route}>
+            <li key={link.label} className="leftsidebar-link group">
+              <NavLink
+                to={link.route}
+                className={({ isActive }) =>
+                  `flex gap-4 items-center p-4 transition rounded-md
+                  ${isActive ? "bg-primary-500 text-white" : "group-hover:bg-primary-200"}
+                  focus:outline-none`
+                }
+              >
                 <img
-                  className={`group-hover:invert-white ${
-                    pathname === link.route ? "invert-white" : ""
-                  }`}
+                  className="group-hover:invert-white"
                   src={link.imgURL}
                   alt={link.label}
                 />
@@ -67,8 +72,13 @@ const LeftSidebar = () => {
         </ul>
       </div>
 
-      <Button variant={"ghost"} className="shad-button_ghost" onClick={() => signOut()}>
-        <img src="/assets/icons/logout.svg" alt="logout image" />
+      <Button
+        variant={"ghost"}
+        className="shad-button_ghost"
+        onClick={() => signOut()}
+        aria-label="Logout"
+      >
+        <img src="/assets/icons/logout.svg" alt="logout icon" />
         <p className="small-medium">Logout</p>
       </Button>
     </nav>

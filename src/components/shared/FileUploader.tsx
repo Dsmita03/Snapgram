@@ -1,4 +1,4 @@
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { FileWithPath, useDropzone } from "react-dropzone";
 import { Button } from "../ui/button";
 
@@ -11,14 +11,24 @@ const FileUploader = ({ fieldChange, mediaUrl }: FileUploaderProps) => {
   const [file, setFile] = useState<File[]>([]);
   const [fileUrl, setFileUrl] = useState(mediaUrl);
 
+  useEffect(() => {
+    setFileUrl(mediaUrl);
+  }, [mediaUrl]);
+
   const onDrop = useCallback(
     (acceptedFiles: FileWithPath[]) => {
       setFile(acceptedFiles);
       fieldChange(acceptedFiles);
+
+      if (fileUrl && fileUrl !== mediaUrl) {
+        URL.revokeObjectURL(fileUrl);
+      }
+
       setFileUrl(URL.createObjectURL(acceptedFiles[0]));
     },
-    [file]
+    [fieldChange, fileUrl, mediaUrl]
   );
+
   const { getRootProps, getInputProps } = useDropzone({
     onDrop,
     accept: {
@@ -28,7 +38,7 @@ const FileUploader = ({ fieldChange, mediaUrl }: FileUploaderProps) => {
 
   return (
     <div className="flex flex-center flex-col bg-dark-3 rounded-xl cursor-pointer" {...getRootProps()}>
-      <input className="cursor-pointer " {...getInputProps()} />
+      <input {...getInputProps()} aria-label="Upload image" />
       {fileUrl ? (
         <>
           <div className="flex flex-1 justify-center w-full p-5 lg:p-10">
@@ -38,7 +48,7 @@ const FileUploader = ({ fieldChange, mediaUrl }: FileUploaderProps) => {
         </>
       ) : (
         <div className="file_uploader-box">
-          <img src="/assets/icons/file-upload.svg" width={96} height={77} alt="File upload image" />
+          <img src="/assets/icons/file-upload.svg" width={96} height={77} alt="File upload icon" />
           <h3 className="base-medium text-light-2 mb-2 mt-6">Drag photo here</h3>
           <p className="text-light-4 small-regular mb-6">SVG, PNG, JPG</p>
           <Button className="shad-button_dark_4" type="button">

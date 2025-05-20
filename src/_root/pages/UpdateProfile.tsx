@@ -16,7 +16,7 @@ import { useUserContext } from "@/context/AuthContext";
 import { useGetUserById, useUpdateUser } from "@/lib/react-queries/queriesAndMutations";
 import { ProfileValidation } from "@/lib/validation";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useEffect, useMemo } from "react";
+import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { z } from "zod";
@@ -26,11 +26,12 @@ const UpdateProfile = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { user, setUser } = useUserContext();
-  const memoizedUser = useMemo(() => user, [user.username]);
 
-  const { data: currentUser } = useGetUserById(id || "");
+  // Fetch user data by ID
+  const { data: currentUser, isLoading, error } = useGetUserById(id || "");
   const { mutateAsync: updateMutate, isPending: isLoadingUpdate } = useUpdateUser();
 
+  // Setup form with validation schema and default empty values
   const form = useForm<z.infer<typeof ProfileValidation>>({
     resolver: zodResolver(ProfileValidation),
     defaultValues: {
@@ -42,14 +43,20 @@ const UpdateProfile = () => {
     },
   });
 
+  // Sync form values when currentUser or user changes
   useEffect(() => {
-    form.setValue("username", user.username);
-    form.setValue("email", user.email);
-    form.setValue("name", user.name);
-    form.setValue("bio", user.bio || "");
-  }, [memoizedUser]);
+    if (currentUser) {
+      form.reset({
+        username: currentUser.username || "",
+        email: currentUser.email || "",
+        name: currentUser.name || "",
+        bio: currentUser.bio || "",
+        file: [],
+      });
+    }
+  }, [currentUser, form]);
 
-  if (!currentUser) {
+  if (isLoading) {
     return (
       <div className="flex-center w-full h-full">
         <Loader />
@@ -57,30 +64,50 @@ const UpdateProfile = () => {
     );
   }
 
-  const handleUpdate = async (values: z.infer<typeof ProfileValidation>) => {
-    const updatedUser = await updateMutate({
-      userId: currentUser.$id,
-      name: values.name,
-      bio: values.bio,
-      file: values.file,
-      imageId: currentUser.imageId,
-      imageUrl: currentUser.imageUrl,
-    });
+  if (error || !currentUser) {
+    return <div className="text-red-500">Failed to load user data.</div>;
+  }
 
-    if (!updatedUser) {
+  const handleUpdate = async (values: z.infer<typeof ProfileValidation>) => {
+    try {
+      const updatedUser = await updateMutate({
+        userId: currentUser.$id,
+        name: values.name,
+        bio: values.bio,
+        file: values.file,
+        imageId: currentUser.imageId,
+        imageUrl: currentUser.imageUrl,
+      });
+
+      if (!updatedUser) {
+        toast({
+          title: "Update user failed. Please try again.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Update global user context with new info
+      setUser({
+        ...user,
+        name: updatedUser.name,
+        bio: updatedUser.bio,
+        imageUrl: updatedUser.imageUrl,
+      });
+
       toast({
-        title: "Update user failed. Please try again",
+        title: "Profile updated successfully!",
+        variant: "default",
+      });
+
+      navigate(`/profile/${id}`);
+    } catch (err) {
+      toast({
+        title: "An error occurred during update.",
+        description: String(err),
+        variant: "destructive",
       });
     }
-
-    setUser({
-      ...user,
-      name: updatedUser?.name,
-      bio: updatedUser?.bio,
-      imageUrl: updatedUser?.imageUrl,
-    });
-
-    return navigate(`/profile/${id}`);
   };
 
   return (
@@ -108,7 +135,10 @@ const UpdateProfile = () => {
               render={({ field }) => (
                 <FormItem className="flex">
                   <FormControl>
-                    <ProfileUploader fieldChange={field.onChange} mediaUrl={currentUser.imageUrl} />
+                    <ProfileUploader
+                      fieldChange={field.onChange}
+                      mediaUrl={currentUser.imageUrl}
+                    />
                   </FormControl>
                   <FormMessage className="shad-form_message" />
                 </FormItem>
@@ -178,8 +208,7 @@ const UpdateProfile = () => {
                 type="submit"
                 disabled={isLoadingUpdate}
               >
-                {isLoadingUpdate ? <Loader /> : ""}
-                Update Profile
+                {isLoadingUpdate ? <Loader /> : "Update Profile"}
               </Button>
             </div>
           </form>

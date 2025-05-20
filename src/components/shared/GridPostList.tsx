@@ -17,22 +17,24 @@ const GridPostList = ({ posts, showUser = true, showStats = true }: GridPostList
       {posts.map((post) => (
         <li className="relative min-w-80 h-80" key={post.$id}>
           <Link className="grid-post_link" to={`/post/${post.$id}`}>
-            <img className="h-full w-full object-cover" src={post.imageUrl} alt="Post" />
+            <img
+              className="h-full w-full object-cover"
+              src={post.imageUrl}
+              alt={post.title ? post.title : "Post image"}
+            />
           </Link>
           <div className="grid-post_user">
-            {showUser ? (
+            {showUser && post.creator?.imageUrl && (
               <div className="flex items-center justify-start gap-2 flex-1">
                 <img
                   className="w-8 h-8 rounded-full"
                   src={post.creator.imageUrl}
-                  alt="Creator image"
+                  alt={`${post.creator.name}'s avatar`}
                 />
                 <p className="line-clamp-1">{post.creator.name}</p>
               </div>
-            ) : (
-              ""
             )}
-            {showStats ? <PostStats post={post} userId={user.id} /> : ""}
+            {showStats && <PostStats post={post} userId={user?.id || ""} />}
           </div>
         </li>
       ))}
